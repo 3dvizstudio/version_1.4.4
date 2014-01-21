@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <flowgraph>
-    <node name="newd" id="0" size="153.97914" x="614.0" y="442.0" color="230" radius="70.109344"/>
-    <node name="new" id="1" size="140.30266" x="787.0" y="303.0" color="140" radius="66.92793"/>
-    <node name="new" id="2" size="153.97914" x="557.0" y="206.0" color="230" radius="70.109344"/>
-    <rel from="1" to="0"/>
+    <rel from="0" to="1"/>
 </flowgraph>

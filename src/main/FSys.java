@@ -1,12 +1,14 @@
 package main;
 
-import processing.core.PGraphics;
+import processing.core.*;
 import toxi.geom.Circle;
+import toxi.geom.Rect;
 import toxi.geom.Vec2D;
 import toxi.physics2d.VerletParticle2D;
 import toxi.physics2d.VerletSpring2D;
 import toxi.physics2d.behaviors.AttractionBehavior2D;
 import toxi.processing.ToxiclibsSupport;
+import util.Color;
 
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
@@ -46,23 +48,132 @@ public class FSys {
 			Node na = getNodeIndex().get(r.from);
 			Node nb = getNodeIndex().get(r.to);
 			float l = na.getRadius() + nb.getRadius() + 5;
-			App.PSYS.getPhysics().addSpring(new VerletSpring2D(na.verlet, nb.verlet, l, 0.01f));
+			VerletSpring2D s = new VerletSpring2D(na.verlet, nb.verlet, l, 0.01f);
+			App.PSYS.getPhysics().addSpring(s);
+//			App.PSYS.addSpring(na, nb);
 		}
 	}
 	public void update() {
-//		for (Node n : nodes) n.update();
 		for (Relation r : relations) {
 			System.out.println(r.to + "-" + r.from);
 			Node na = nodeIndex.get(r.from);
 			System.out.println(na.radius);
 			Node nb = nodeIndex.get(r.to);
 			System.out.println(nb.radius);
-			float l = (na.radius + nb.radius + 5);
-			App.PSYS.getPhysics().getSpring(na.verlet, nb.verlet).setRestLength(l);
+			float l = (((na.radius + nb.radius + 5) * App.SPR_SCALE));
+			App.PSYS.getPhysics().getSpring(na.verlet, nb.verlet).setRestLength(l).setStrength(App.SPR_STR);
+		}
+		for (FSys.Node n : nodes) {
+			n.behavior.setRadius(n.getRadius() * 2);
+			n.behavior.setStrength(App.NODE_STR);
 		}
 	}
-	public void clear() { nodes.clear(); relations.clear(); nodeIndex.clear(); relationIndex.clear(); }
+	public void updateNodes() {
+		for (FSys.Node n : nodes) { n.update(); }
+	}
+	public void updateSprings() {
+		for (Relation r : relations) {
+			Node na = nodeIndex.get(r.from);
+			Node nb = nodeIndex.get(r.to);
+			float l = (((na.radius + nb.radius + 5) * App.SPR_SCALE));
+			App.PSYS.getPhysics().getSpring(na.verlet, nb.verlet).setRestLength(l).setStrength(App.SPR_STR);
+		}
+	}
 
+	public void draw(ToxiclibsSupport gfx) {
+		if (!nodes.isEmpty()) {
+			drawRelations(gfx); drawNodes(gfx); drawActive(gfx);
+			if (App.SHOW_INFO) drawInfo(gfx);
+		}
+	}
+	private void drawRelations(ToxiclibsSupport gfx) {
+		PGraphics pg = gfx.getGraphics();
+		pg.stroke(0xff2b2b2b);
+		pg.strokeWeight(2);
+		for (Relation r : relations) {
+			gfx.line(getNodeIndex().get(r.from).verlet, getNodeIndex().get(r.to).verlet);
+		}
+		pg.strokeWeight(1);
+		pg.noStroke();
+	}
+	private void drawInfo(ToxiclibsSupport gfx) {
+		PGraphics pg = gfx.getGraphics();
+		float totalSize = 0;
+		for (Node n : nodes) { totalSize += n.size; }
+		pg.pushMatrix();
+		pg.translate(App.P5.width - 120, 50);
+		pg.fill(Color.BG_TEXT);
+		pg.text("NAME", 10, -2);
+		pg.textAlign(PApplet.RIGHT);
+		pg.text("AREA", 100, -2);
+		int stripe = 0;
+		for (Node n : nodes) {
+			if (stripe % 2 == 0) { pg.fill(0xff383838); } else {pg.fill(0xff333333);}
+			gfx.rect(Rect.fromCenterExtent(new Vec2D(53, 6), new Vec2D(50, 5)));
+			pg.fill(Color.FACES);
+			gfx.rect(Rect.fromCenterExtent(new Vec2D(0, 6), new Vec2D(3, 5)));
+			pg.fill(n.color, 100, 100);
+			gfx.rect(Rect.fromCenterExtent(new Vec2D(0, 5), new Vec2D(1, 4)));
+			if (n == activeNode) pg.fill(Color.ACTIVE);
+			else if (selectedNodes.contains(n)) pg.fill(Color.SELECTED);
+			else pg.fill(Color.BG_TEXT);
+			pg.translate(0, 10);
+			pg.textAlign(PApplet.LEFT);
+			pg.text(n.name, 10, 0);
+			pg.textAlign(PApplet.RIGHT);
+			pg.text(n.id, -10, 0);
+			pg.text((int) n.size, 100, 0);
+			stripe++;
+		}
+		pg.fill(Color.ACTIVE);
+		pg.textAlign(PApplet.RIGHT);
+		pg.text("Total Area", 100, 20);
+		pg.text(App.DF3.format(totalSize) + " sq.m", 100, 30);
+		pg.noFill();
+		pg.popMatrix();
+	}
+	private void drawNodes(ToxiclibsSupport gfx) { for (Node n : nodes) { n.draw(gfx); } }
+	private void drawActive(ToxiclibsSupport gfx) {
+		PGraphics pg = gfx.getGraphics();
+		if (hasActiveNode()) {
+			activeNode.drawDebugInfo(gfx);
+			activeNode.drawHighlightAct(gfx);
+		}
+		if (!selectedNodes.isEmpty()) {
+			for (Node n : selectedNodes) { n.drawHighlightSel(gfx); }
+		}
+	}
+	private void drawDebugInfo(ToxiclibsSupport gfx) {
+		PGraphics pg = gfx.getGraphics();
+		pg.pushMatrix();
+		pg.translate(355, 50);
+		pg.fill(Color.BG_TEXT);
+		pg.text("ID", 10, 0);
+		pg.text("col", 150, 0);
+		pg.text("rad", 250, 0);
+		pg.text("x", 300, 0);
+		pg.text("vx", 350, 0);
+		pg.text("y", 400, 0);
+		pg.text("vy", 450, 0);
+		for (Node n : nodes) {
+			pg.fill(n.color, 100, 100);
+			gfx.rect(Rect.fromCenterExtent(new Vec2D(-7, 5), new Vec2D(2, 4)));
+			if (n == activeNode) pg.fill(Color.ACTIVE);
+			else if (selectedNodes.contains(n)) pg.fill(Color.SELECTED);
+			else pg.fill(Color.BG_TEXT);
+			pg.translate(0, 10);
+			pg.text(n.id, 25, 0);
+			pg.text((int) n.size, 200, 0);
+			pg.text((int) n.radius, 250, 0);
+			pg.text((int) n.x, 300, 0);
+			pg.text((int) n.verlet.x, 350, 0);
+			pg.text((int) n.y, 400, 0);
+			pg.text((int) n.verlet.y, 450, 0);
+		} pg.noFill();
+		pg.popMatrix();
+	}
+	public void addNode(Node n) {nodes.add(n);}
+	public void addRelation(Relation r) {relations.add(r);}
 	public void selectNodeNearPosition(Vec2D mousePos) {
 		Circle c = new Circle(mousePos, 20);
 		deselectNode();
@@ -79,58 +190,18 @@ public class FSys {
 		if (activeNode != null) { activeNode.x = mousePos.x; activeNode.y = mousePos.y; activeNode.verlet.set(mousePos); }
 	}
 	public void deselectNode() {if (hasActiveNode()) {activeNode.verlet.unlock();} activeNode = null;}
-	public Node getActiveNode() { return activeNode; }
-	private void setActiveNode(Node a) { activeNode = a; activeNode.verlet.lock(); }
-	public List<Node> getSelectedNodes() { return selectedNodes; }
-	public boolean hasActiveNode() { return activeNode != null; }
-	public final Node getNodeForID(int id) { return nodeIndex.get(id); }
-	public final ArrayList<Node> getRelForID(int id) { return relationIndex.get(id); }
-	public HashMap<Integer, Node> getNodeIndex() { return nodeIndex; }
 	public void setRelations(ArrayList<Relation> relations) {FSys.relations = relations;}
 	public void setNodes(ArrayList<Node> nodes) {FSys.nodes = nodes;}
-	public void addNode(Node n) {nodes.add(n);}
-	public void addRelation(Relation r) {relations.add(r);}
+	public void clear() { nodes.clear(); relations.clear(); nodeIndex.clear(); relationIndex.clear(); }
+	public void setActiveNode(Node a) { activeNode = a; a.update(); activeNode.verlet.lock(); }
+	public final Node getNodeForID(int id) { return nodeIndex.get(id); }
+	public final ArrayList<Node> getRelForID(int id) { return relationIndex.get(id); }
+	public boolean hasActiveNode() { return activeNode != null; }
+	public Node getActiveNode() { return activeNode; }
+	public List<Node> getSelectedNodes() { return selectedNodes; }
 	public ArrayList<Node> getNodes() { return nodes; }
-
-	public void draw(ToxiclibsSupport gfx) {
-		if (!nodes.isEmpty()) {
-			drawInfo(gfx); drawNodes(gfx); drawActive(gfx);
-		}
-	}
-	private void drawInfo(ToxiclibsSupport gfx) {
-		PGraphics pg = gfx.getGraphics();
-		pg.pushMatrix();
-		pg.translate(360, 50);
-		pg.fill(0xff666666);
-		pg.text("id: name", 0, 0);
-		pg.text("col", 50, 0);
-		pg.text("size", 100, 0);
-		pg.text("rad", 150, 0);
-		pg.text("x", 200, 0);
-		pg.text("vx", 250, 0);
-		pg.text("y", 300, 0);
-		pg.text("vy", 350, 0);
-		pg.fill(0xff444444);
-		for (Node n : nodes) {
-			pg.translate(0, 10);
-			pg.text(n.id + ": " + n.name, 0, 0);
-			pg.text(n.color, 50, 0);
-			pg.text((int) n.size, 100, 0);
-			pg.text((int) n.radius, 150, 0);
-			pg.text((int) n.x, 200, 0);
-			pg.text((int) n.verlet.x, 250, 0);
-			pg.text((int) n.y, 300, 0);
-			pg.text((int) n.verlet.y, 350, 0);
-		} pg.noFill();
-		pg.popMatrix();
-	}
-	private void drawNodes(ToxiclibsSupport gfx) { for (Node n : nodes) { n.draw(gfx); } }
-	private void drawActive(ToxiclibsSupport gfx) {
-		PGraphics pg = gfx.getGraphics();
-		if (!selectedNodes.isEmpty()) {
-			for (Node n : selectedNodes) { pg.stroke(0xffffff00); pg.ellipse(n.verlet.x, n.verlet.y, 30, 30); pg.noStroke(); }
-		}
-	}
+	public HashMap<Integer, Node> getNodeIndex() { return nodeIndex; }
+	public ArrayList<Relation> getRelations() { return relations; }
 
 	@XmlRootElement(name = "node")
 	@XmlAccessorType(XmlAccessType.FIELD)
@@ -141,7 +212,7 @@ public class FSys {
 		@XmlAttribute
 		public int id;
 		@XmlAttribute
-		public float size;
+		public float size = 50;
 		@XmlAttribute
 		public float x;
 		@XmlAttribute
@@ -164,34 +235,77 @@ public class FSys {
 			System.out.println(radius + " : " + verlet.x + " : " + verlet.y);
 		}
 		public void update() {
+			this.x = verlet.x;
+			this.y = verlet.y;
 			radius = (float) ((Math.sqrt(size / Math.PI)) * App.NODE_SCALE * App.SCALE) + App.NODE_PAD;
-			behavior.setRadius(radius);
+			behavior.setRadius(radius * 2);
 			behavior.setStrength(App.NODE_STR);
 		}
+		public void synchronize() {
+			this.x = verlet.x;
+			this.y = verlet.y;
+		}
+
 		public void draw(ToxiclibsSupport gfx) {
+			PGraphics pg = gfx.getGraphics();
+			synchronize();
+			pg.stroke(Color.BLACK);
+			pg.fill(Color.CP5_BG);
+			pg.ellipse(verlet.x, verlet.y, 3, 3);
+			pg.noFill();
+			pg.stroke(Color.BG_TEXT);
+			pg.ellipse(verlet.x, verlet.y, radius - 2, radius - 2);
+			pg.noStroke();
+			drawInfo(gfx);
+		}
+		private void drawColored(ToxiclibsSupport gfx) {
 			PGraphics pg = gfx.getGraphics();
 			pg.stroke(color, 100, 100);
 			pg.ellipse(verlet.x, verlet.y, radius, radius);
 			pg.noStroke();
-			drawInfo(gfx);
+		}
+		private void drawHighlightSel(ToxiclibsSupport gfx) {
+			PGraphics pg = gfx.getGraphics();
+			pg.stroke(Color.BLACK);
+			pg.fill(Color.SELECTED);
+			pg.ellipse(x, y, 3, 3);
+			pg.noStroke();
+			pg.noFill();
+		}
+		private void drawHighlightAct(ToxiclibsSupport gfx) {
+			PGraphics pg = gfx.getGraphics();
+			pg.stroke(Color.BLACK);
+			pg.ellipse(verlet.x, verlet.y, radius + 2, radius + 2);
+			pg.fill(Color.ACTIVE);
+			pg.ellipse(x, y, 3, 3);
+			pg.noStroke();
+			pg.noFill();
 		}
 		private void drawInfo(ToxiclibsSupport gfx) {
 			PGraphics pg = gfx.getGraphics();
-			pg.fill(0xff444444);
-			pg.pushMatrix();
-			pg.translate(x, y);
-			pg.text(id + ": " + name, -100, 0);
-			pg.text(color, -100, 10);
-			pg.text((int) size, -100, 20);
-			pg.text((int) radius, -100, 30);
-			pg.text((int) x, 100, 0);
-			pg.text((int) verlet.x, 100, 10);
-			pg.text((int) behavior.getAttractor().x, 100, 20);
-			pg.text((int) y, 150, 0);
-			pg.text((int) verlet.y, 150, 10);
-			pg.text((int) behavior.getAttractor().y, 150, 20);
+			pg.fill(0xff999999);
+			gfx.rect(Rect.fromCenterExtent(new Vec2D(350, verlet.y - 3), new Vec2D(6, 6)));
+			pg.fill(Color.BG);
+			pg.textAlign(PApplet.CENTER);
+//			pg.text("[" + id + "]", 350, y);
+			pg.text(id, 350, verlet.y);
+			pg.fill(0xff666666);
+			pg.textAlign(PApplet.RIGHT);
+			pg.text(name, 340, y);
 			pg.noFill();
-			pg.popMatrix();
+		}
+		private void drawDebugInfo(ToxiclibsSupport gfx) {
+			PGraphics pg = gfx.getGraphics();
+			pg.fill(0xff444444);
+			pg.text("s : " + (int) size, x, y);
+			pg.text("r : " + (int) radius, x, 70);
+			pg.text("x : " + (int) x, x, 80);
+			pg.text("vx : " + (int) verlet.x, x, 90);
+			pg.text("bx : " + (int) behavior.getAttractor().x, x, 100);
+			pg.text("y : " + (int) y, x, 110);
+			pg.text("vy : " + (int) verlet.y, x, 120);
+			pg.text("by : " + (int) behavior.getAttractor().y, x, 130);
+			pg.noFill();
 		}
 
 		public float getRadius() { return radius; }
@@ -211,3 +325,42 @@ public class FSys {
 		public void setFrom(int from) {this.from = from;}
 	}
 }
+/*
+	private void drawInfoNew(ToxiclibsSupport gfx) {
+		PGraphics pg = gfx.getGraphics();
+		HashMap<String, ArrayList<String>> infoMap = new HashMap<>();
+		ArrayList<String> ids = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> colors = new ArrayList<>();
+		ArrayList<String> sizes = new ArrayList<>();
+		ArrayList<String> radii = new ArrayList<>();
+		for (Node n : nodes) {
+			ids.add(String.valueOf(n.id));
+			names.add(n.name);
+			colors.add(String.valueOf(n.color));
+			sizes.add(String.valueOf(n.size));
+			radii.add(String.valueOf(n.getRadius()));
+		}
+		infoMap.put("id : ", ids);
+		infoMap.put("name : ", names);
+		infoMap.put("color : ", colors);
+		infoMap.put("size : ", sizes);
+		infoMap.put("radius : ", radii);
+
+		pg.pushMatrix();
+		pg.translate(350, 450);
+		pg.fill(0xff666666);
+		for (Map.Entry entry : infoMap.entrySet()) {
+			pg.translate(0, 10);
+			pg.textAlign(PApplet.RIGHT); pg.text(String.valueOf(entry.getKey()), 0, 0);
+			pg.textAlign(PApplet.LEFT); pg.text(String.valueOf(entry.getValue()), 0, 0);
+		}
+		pg.noFill();
+		pg.popMatrix();
+	}
+*/
+
+//	public final Node getNodeForID(int id) { return nodeIndex.get(id); }
+//	public final ArrayList<Node> getRelForID(int id) { return relationIndex.get(id); }
+//	public void addNode(Node n) {nodes.add(n);}
+//	public void addRelation(Relation r) {relations.add(r);}

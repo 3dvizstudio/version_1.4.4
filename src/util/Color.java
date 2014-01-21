@@ -5,7 +5,7 @@ public final class Color {
 	public static final int RED = 0xffbf3c3c;
 	public static final int ORANGE = 0xffeca860;
 	public static final int WHITE = 0xffffffff;
-	public static final int BG = 0xff101010;
+	//	public static final int BG = 0xff101010;
 	public static final int BG_MENUS = 0xff171717;
 	public static final int TXT = 0xffffffff;
 	//	NODES
@@ -29,4 +29,18 @@ public final class Color {
 	public static final int CP5_ACT = 0xff666666;
 	public static final int CP5_FG = 0xffbf3c3c;
 	public static final int CP5_BG = 0xff2b2b2b;
+
+	public static final int BG = 0xff393939;
+	public static final int GRID = 0xff464646;
+	public static final int FACES = 0xff313131;
+	public static final int BLACK = 0xff000000;
+
+	public static final int ACTIVE = 0xffffaa40;
+	public static final int SELECTED = 0xfff15800;
+	public static final int PROXY = 0xff88ffff;
+	public static final int GROUP = 0xff55bb55;
+	public static final int CP5_BLUE = 0xff557fc1;
+	public static final int CP5_DKGREY = 0xff434343;
+
+	public static final int BG_TEXT = 0xff666666;
 }

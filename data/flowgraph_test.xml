@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<flowgraph>
+    <node name="new" id="0" size="16.666666" x="866.96906" y="232.3708" color="180" radius="21.29466"/>
+    <node name="new" id="1" size="50.0" x="841.4861" y="301.79944" color="180" radius="36.87611"/>
+    <node name="new" id="2" size="83.33333" x="760.0" y="423.0" color="259" radius="47.603943"/>
+    <node name="new" id="3" size="83.33333" x="765.02374" y="360.98538" color="259" radius="47.603943"/>
+    <node name="new" id="4" size="50.0" x="930.86163" y="314.0559" color="180" radius="36.87611"/>
+    <node name="new" id="5" size="50.0" x="930.86163" y="314.0559" color="180" radius="36.87611"/>
+    <node name="new.6" id="6" size="27.777777" x="678.6454" y="410.53937" color="259" radius="27.488377"/>
+    <node name="new.7" id="7" size="83.33333" x="713.5532" y="268.0101" color="259" radius="47.603943"/>
+    <node name="new.8" id="8" size="27.777777" x="831.21356" y="441.94366" color="259" radius="27.488377"/>
+    <node name="new.6.9" id="9" size="27.777777" x="639.1849" y="353.4267" color="259" radius="27.488377"/>
+    <node name="new.6.10" id="10" size="27.777777" x="621.52966" y="450.42953" color="259" radius="27.488377"/>
+    <node name="new.6.11" id="11" size="27.777777" x="703.4804" y="474.90274" color="259" radius="27.488377"/>
+    <node name="new.7.12" id="12" size="12.500002" x="632.68286" y="275.21387" color="122" radius="18.443058"/>
+    <node name="new.7.13" id="13" size="12.500002" x="647.29724" y="220.85368" color="122" radius="18.443058"/>
+    <node name="new.7.14" id="14" size="12.500002" x="699.1136" y="187.44867" color="122" radius="18.443058"/>
+    <node name="new.15" id="15" size="16.666666" x="814.8673" y="216.21823" color="180" radius="21.29466"/>
+    <node name="new.16" id="16" size="16.666666" x="864.8852" y="177.41544" color="180" radius="21.29466"/>
+    <node name="new.17" id="17" size="16.666666" x="922.0916" y="231.35997" color="180" radius="21.29466"/>
+    <node name="new.8.18" id="18" size="27.777777" x="791.4388" y="498.75394" color="259" radius="27.488377"/>
+    <node name="new.8.19" id="19" size="27.777777" x="884.25586" y="487.4805" color="259" radius="27.488377"/>
+    <node name="new.8.20" id="20" size="27.777777" x="881.17285" y="394.23422" color="259" radius="27.488377"/>
+    <rel from="0" to="1"/>
+    <rel from="2" to="1"/>
+    <rel from="4" to="1"/>
+    <rel from="6" to="2"/>
+    <rel from="7" to="2"/>
+    <rel from="8" to="2"/>
+    <rel from="9" to="6"/>
+    <rel from="10" to="6"/>
+    <rel from="11" to="6"/>
+    <rel from="12" to="7"/>
+    <rel from="13" to="7"/>
+    <rel from="14" to="7"/>
+    <rel from="15" to="0"/>
+    <rel from="16" to="0"/>
+    <rel from="17" to="0"/>
+    <rel from="18" to="8"/>
+    <rel from="19" to="8"/>
+    <rel from="20" to="8"/>
+    <rel from="2" to="3"/>
+</flowgraph>
